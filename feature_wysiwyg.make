@@ -4,10 +4,10 @@ core = 7.x
 ; Modules =====================================================================
 
 projects[features][subdir] = contrib
-projects[features][version] = 1.0-rc1
+projects[features][version] = 2.6
 
 projects[imce][subdir] = contrib
-projects[imce][version] = 1.5
+projects[imce][version] = 1.9
 
 projects[imce_wysiwyg][subdir] = contrib
 projects[imce_wysiwyg][version] = 1.0
@@ -22,6 +22,6 @@ projects[wysiwyg][version] = 2.x-dev
 ; Libraries ==================================================================
 
 libraries[ckeditor][download][type]= "get"
-libraries[ckeditor][download][url] = "http://download.cksource.com/CKEditor/CKEditor/CKEditor%203.6.2/ckeditor_3.6.2.zip"
+libraries[ckeditor][download][url] = "http://download.cksource.com/CKEditor/CKEditor/CKEditor%204.5.2/ckeditor_4.5.2_full.zip"
 libraries[ckeditor][directory_name] = "ckeditor"
 libraries[ckeditor][destination] = "libraries"
