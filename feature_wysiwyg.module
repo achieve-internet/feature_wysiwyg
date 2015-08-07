@@ -5,3 +5,104 @@
  */
 
 include_once('feature_wysiwyg.features.inc');
+
+/*
+ * Implements hook_init()
+ */
+function feature_wysiwyg_init() {
+  drupal_add_css(drupal_get_path('module', 'feature_wysiwyg') . '/css/wysiwyg.css', array('group' => CSS_DEFAULT, 'every_page' => TRUE));
+}
+
+/**
+ * Implements hook_wysiwyg_editor_settings_alter().
+ */
+function feature_wysiwyg_wysiwyg_editor_settings_alter(&$settings, $context) {
+  if ($context['profile']->editor == 'ckeditor') {
+
+    $settings['customConfig'] = base_path() . drupal_get_path('module', 'feature_wysiwyg') . '/js/wysiwyg_styles.js';
+    // The layout we'd want to use if all buttons were enabled.
+    // This example uses all buttons on one row, but separate them into groups that will wrap as one.
+    // Multiple
+    $toolbar = array(
+      array( // Row
+        array('Bold', 'Italic', 'Underline', 'Strike',), // Group
+        array('JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock',),
+        array('BulletedList', 'NumberedList',),
+        array('Outdent', 'Indent',),
+        array('Undo', 'Redo',),
+        array('Link', 'Unlink', 'Anchor',),
+        array('Superscript', 'Subscript',),
+        array('Blockquote', 'Source', 'HorizontalRule',),
+        array('Cut', 'Copy', 'Paste',),
+        array('PasteText', 'PasteFromWord',),
+        array('TextColor', 'BGColor', 'RemoveFormat',),
+        array('Format', 'Font', 'FontSize', 'Styles',),
+        array('ShowBlocks', 'SpecialChar',),
+        array('SelectAll', 'Find', 'Replace',),
+        array('Image', 'Flash', 'Smiley', 'Table', 'CreateDiv', 'dnd', 'sas'),
+        array('Maximize', 'SpellChecker', 'Scayt',),
+      ),
+    );
+    // Use the original toobar definition as a lookup list.
+    $original_toolbar = $settings['toolbar'][0];
+    // Loop through rows.
+    $r_key = 0;
+    while ($r_key < count($toolbar)) {
+      $row = &$toolbar[$r_key];
+      // Loop through groups.
+      $g_key = 0;
+      while ($g_key < count($row)) {
+        $group = &$row[$g_key];
+        if (is_array($group)) { // This check isn't really needed for CKEditor.
+          // Loop through buttons.
+          $i_key = 0;
+          while ($i_key < count($group)) {
+            $item = &$group[$i_key];
+            // Check if button was enabled.
+            if (($found_key = array_search($item, $original_toolbar)) !== FALSE) {
+              // Unset enabled button from original layout. Those left were possibly added by 3rd party plugins after our layout was created and need to be appended to the final toolbar so they won't just disappear.
+              unset($original_toolbar[$found_key]);
+            }
+            else {
+              //  Cut out disabled button from our custom toolbar layout.
+              $cut =array_splice($toolbar[$r_key][$g_key], $i_key, 1);
+              // Loop through the same button index again since the array was reindexed.
+              $i_key -= 1;
+            }
+            $i_key += 1;
+          }
+          // Remove empty groups.
+          if (count($group) == 0) {
+            array_splice($toolbar[$r_key], $g_key, 1);
+            // Loop through the same group index again since the array was reindexed.
+            $g_key -= 1;
+          }
+        }
+        $g_key += 1;
+      }
+      $r_key += 1;
+    }
+    // Any buttons left in the original toolbar were not in our custom layout, append them in a new group in the last row.
+    if (count($original_toolbar) > 0) {
+      $last_row = count($toolbar) -1;
+      $extra_group = array();
+      foreach ($original_toolbar as $item) {
+        $extra_group[] = $item;
+      }
+      array_push($toolbar[$last_row], $extra_group);
+    }
+    // Add groups to a single array and delimit rows with slashes.
+    $joined_toolbar = array();
+    foreach ($toolbar as $row) {
+      foreach($row as $grp){
+        $joined_toolbar[] = $grp;
+      }
+      $joined_toolbar[] = '/';
+    }
+    // Remove the last empty row.
+    array_pop($joined_toolbar);
+    // Replace the old toolbar with our new shiny one.
+    $settings['toolbar'] = $joined_toolbar;
+  }
+
+}
